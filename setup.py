@@ -11,5 +11,6 @@ setup(name='tdapi',
       install_requires=[
           'requests',
           'requests-cache',
+          'iso8601',
           ],
       zip_safe=False)
