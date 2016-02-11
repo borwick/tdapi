@@ -1,20 +1,19 @@
 import copy
 
-from django.conf import settings
+import tdapi
+import tdapi.obj
 
-import api.obj
 
-
-class TDRelationshipTypeQuerySet(api.obj.TDQuerySet):
+class TDRelationshipTypeQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDRelationshipTypeManager(api.obj.TDObjectManager):
+class TDRelationshipTypeManager(tdapi.obj.TDObjectManager):
     def all(self):
         return TDRelationshipTypeQuerySet(
             [self.object_class(td_struct)
                 for td_struct
-                in settings.TD_CONNECTION.json_request(
+                in tdapi.TD_CONNECTION.json_request(
                     method='get',
                     url_stem='cmdb/relationshiptypes')]
             )
@@ -25,22 +24,22 @@ class TDRelationshipTypeManager(api.obj.TDObjectManager):
         return named_type[0]
 
 
-class TDRelationshipType(api.obj.TDObject):
+class TDRelationshipType(tdapi.obj.TDObject):
     def id(self):
         return self.get('ID')
 
-api.obj.relate_cls_to_manager(TDRelationshipType, TDRelationshipTypeManager)
+tdapi.obj.relate_cls_to_manager(TDRelationshipType, TDRelationshipTypeManager)
 
 
-class TDRelationshipQuerySet(api.obj.TDQuerySet):
+class TDRelationshipQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDRelationshipManager(api.obj.TDObjectManager):
+class TDRelationshipManager(tdapi.obj.TDObjectManager):
     pass
 
 
-class TDRelationship(api.obj.TDObject):
+class TDRelationship(tdapi.obj.TDObject):
     def child_id(self):
         return self.td_struct['ChildID']
 
@@ -59,19 +58,19 @@ class TDRelationship(api.obj.TDObject):
     def parent(self):
         return TDConfigurationItem.objects.get(self.parent_id())
 
-api.obj.relate_cls_to_manager(TDRelationship, TDRelationshipManager)
+tdapi.obj.relate_cls_to_manager(TDRelationship, TDRelationshipManager)
 
 
-class TDConfigurationTypeQuerySet(api.obj.TDQuerySet):
+class TDConfigurationTypeQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDConfigurationTypeManager(api.obj.TDObjectManager):
+class TDConfigurationTypeManager(tdapi.obj.TDObjectManager):
     def all(self):
         return TDConfigurationTypeQuerySet(
             [self.object_class(td_struct)
                 for td_struct
-                in settings.TD_CONNECTION.json_request_roller(
+                in tdapi.TD_CONNECTION.json_request_roller(
                     method='get',
                     url_stem='cmdb/types')]
             )
@@ -81,21 +80,21 @@ class TDConfigurationTypeManager(api.obj.TDObjectManager):
                 if x['Name'] in type_names]
 
 
-class TDConfigurationType(api.obj.TDObject):
+class TDConfigurationType(tdapi.obj.TDObject):
     def name(self):
         return self.get('Name')
 
     def id(self):
         return self.get('ID')
 
-api.obj.relate_cls_to_manager(TDConfigurationType, TDConfigurationTypeManager)
+tdapi.obj.relate_cls_to_manager(TDConfigurationType, TDConfigurationTypeManager)
 
 
-class TDConfigurationItemQuerySet(api.obj.TDQuerySet):
+class TDConfigurationItemQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDConfigurationItemManager(api.obj.TDObjectManager):
+class TDConfigurationItemManager(tdapi.obj.TDObjectManager):
     ci_types = None
 
     def _ci_type_ids(self):
@@ -110,7 +109,7 @@ class TDConfigurationItemManager(api.obj.TDObjectManager):
 
     def get(self, cmdb_id):
         cmdb_url_stem = 'cmdb/{}'.format(cmdb_id)
-        td_struct = settings.TD_CONNECTION.json_request_roller(
+        td_struct = tdapi.TD_CONNECTION.json_request_roller(
             method='get',
             url_stem=cmdb_url_stem)
         assert len(td_struct) == 1
@@ -124,7 +123,7 @@ class TDConfigurationItemManager(api.obj.TDObjectManager):
         return TDConfigurationItemQuerySet(
             [self.object_class(td_struct)
                 for td_struct
-                in settings.TD_CONNECTION.json_request_roller(
+                in tdapi.TD_CONNECTION.json_request_roller(
                     method='post',
                     url_stem='cmdb/search',
                     data=data)]
@@ -136,7 +135,7 @@ class TDConfigurationItemManager(api.obj.TDObjectManager):
         return self.search(data={'TypeIDs': ci_type_ids})
 
 
-class TDConfigurationItem(api.obj.TDObject):
+class TDConfigurationItem(tdapi.obj.TDObject):
     def __init__(self, *args, **kwargs):
         super(TDConfigurationItem, self).__init__(*args, **kwargs)
         self._single_queried = False
@@ -148,7 +147,7 @@ class TDConfigurationItem(api.obj.TDObject):
             return cached_attr_val
 
         if self._single_queried is False:
-            self.td_struct = settings.TD_CONNECTION.json_request(
+            self.td_struct = tdapi.TD_CONNECTION.json_request(
                 method='get',
                 url_stem=self.url(),
                 )
@@ -173,7 +172,7 @@ class TDConfigurationItem(api.obj.TDObject):
     def relationships(self):
         return [TDRelationship(td_struct)
                 for td_struct
-                in settings.TD_CONNECTION.json_request_roller(
+                in tdapi.TD_CONNECTION.json_request_roller(
                     method='get',
                     url_stem="{}/relationships".format(self.url()))]
 
@@ -233,13 +232,13 @@ class TDConfigurationItem(api.obj.TDObject):
         add_url += 'otheritemid={}&'.format(other_ci_id)
         add_url += 'isparent=False'
 
-        settings.TD_CONNECTION.json_request(method='put',
+        tdapi.TD_CONNECTION.json_request(method='put',
                                             url_stem=add_url)
 
     def attribute(self, attr_name):
         return self.attributes()[attr_name]
 
-api.obj.relate_cls_to_manager(TDConfigurationItem,
+tdapi.obj.relate_cls_to_manager(TDConfigurationItem,
                               TDConfigurationItemManager)
 
 
@@ -250,7 +249,7 @@ class TDServerSideAppManager(TDConfigurationItemManager):
 class TDServerSideApp(TDConfigurationItem):
     pass
 
-api.obj.relate_cls_to_manager(TDServerSideApp,
+tdapi.obj.relate_cls_to_manager(TDServerSideApp,
                               TDServerSideAppManager)
 
 
@@ -261,5 +260,5 @@ class TDVirtualServerManager(TDConfigurationItemManager):
 class TDVirtualServer(TDConfigurationItem):
     pass
 
-api.obj.relate_cls_to_manager(TDVirtualServer,
+tdapi.obj.relate_cls_to_manager(TDVirtualServer,
                               TDVirtualServerManager)

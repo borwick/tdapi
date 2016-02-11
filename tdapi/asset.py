@@ -1,61 +1,59 @@
 import copy
 
-import api
-import api.obj
-from api.cmdb import TDConfigurationItem
-
-from django.conf import settings
+import tdapi
+import tdapi.obj
+from tdapi.cmdb import TDConfigurationItem
 
 
-class TDProductTypeQuerySet(api.obj.TDQuerySet):
+class TDProductTypeQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDProductTypeManager(api.obj.TDObjectManager):
+class TDProductTypeManager(tdapi.obj.TDObjectManager):
     pass
 
 
-class TDProductType(api.obj.TDObject):
+class TDProductType(tdapi.obj.TDObject):
     pass
 
-api.obj.relate_cls_to_manager(TDProductType, TDProductTypeManager)
+tdapi.obj.relate_cls_to_manager(TDProductType, TDProductTypeManager)
 
 
-class TDResourceItemQuerySet(api.obj.TDQuerySet):
+class TDResourceItemQuerySet(tdapi.obj.TDQuerySet):
     def users(self):
         return TDResourceItemQuerySet([x for x in self.qs
                                        if x.td_struct['ItemRole'] == 'Person'])
 
 
-class TDResourceItemManager(api.obj.TDObjectManager):
+class TDResourceItemManager(tdapi.obj.TDObjectManager):
     pass
 
 
-class TDResourceItem(api.obj.TDObject):
+class TDResourceItem(tdapi.obj.TDObject):
     pass
 
-api.obj.relate_cls_to_manager(TDResourceItem, TDResourceItemManager)
+tdapi.obj.relate_cls_to_manager(TDResourceItem, TDResourceItemManager)
 
 
-class TDProductModelQuerySet(api.obj.TDQuerySet):
+class TDProductModelQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDProductModelManager(api.obj.TDObjectManager):
+class TDProductModelManager(tdapi.obj.TDObjectManager):
     def all(self):
         return TDProductModelQuerySet(
             [self.object_class(model)
-                for model in settings.TD_CONNECTION.json_request_roller(
+                for model in tdapi.TD_CONNECTION.json_request_roller(
                         method='get',
                         url_stem='assets/models')]
             )
 
     def by_product_types(self, product_types):
         # FIXME this doesn't recurse through these types, because the
-        # API doesn't have a way to do this. e.g. will find stuff uner
+        # TDAPI doesn't have a way to do this. e.g. will find stuff uner
         # the listed type but not the type's sub-types.
         if len(product_types) == 0:
-            raise api.TDException("No product types passed")
+            raise tdapi.TDException("No product types passed")
 
         # TODO make this work when `product_types` are actual
         # TDProductType objects.
@@ -63,20 +61,20 @@ class TDProductModelManager(api.obj.TDObjectManager):
                 if model['ProductTypeName'] in product_types]
 
 
-class TDProductModel(api.obj.TDObject):
+class TDProductModel(tdapi.obj.TDObject):
     pass
 
-api.obj.relate_cls_to_manager(TDProductModel, TDProductModelManager)
+tdapi.obj.relate_cls_to_manager(TDProductModel, TDProductModelManager)
 
 
-class TDAssetQuerySet(api.obj.TDQuerySet):
+class TDAssetQuerySet(tdapi.obj.TDQuerySet):
     def by_location_and_room(self):
         sorted_qs = sorted(self.qs,
                            key=lambda asset: asset.location_and_room_string())
         return TDAssetQuerySet(sorted_qs)
 
 
-class TDAssetManager(api.obj.TDObjectManager):
+class TDAssetManager(tdapi.obj.TDObjectManager):
     def search(self, data):
         """
         Only returns in-service assets.
@@ -88,7 +86,7 @@ class TDAssetManager(api.obj.TDObjectManager):
         return TDAssetQuerySet(
             [TDAsset(td_struct)
                 for td_struct
-                in settings.TD_CONNECTION.json_request_roller(
+                in tdapi.TD_CONNECTION.json_request_roller(
                     method='post',
                     url_stem='assets/search',
                     data=data)]
@@ -96,14 +94,14 @@ class TDAssetManager(api.obj.TDObjectManager):
 
     def by_model(self, models):
         if len(models) == 0:
-            raise api.TDException("No model passed")
+            raise tdapi.TDException("No model passed")
         model_ids = [model['ID'] for model in models]
 
         return self.search({'ProductModelIDs': model_ids})
 
     def by_product_types(self, product_types):
         if len(product_types) == 0:
-            raise api.TDException("No product types passed")
+            raise tdapi.TDException("No product types passed")
 
         models = TDProductModel.objects.by_product_types(product_types)
         return self.by_model(models)
@@ -119,7 +117,7 @@ class TDAssetManager(api.obj.TDObjectManager):
         return self.by_product_types(self.LICENSE_PRODUCT_TYPES)
 
 
-class TDAsset(api.obj.TDObject):
+class TDAsset(tdapi.obj.TDObject):
     def __init__(self, *args, **kwargs):
         super(TDAsset, self).__init__(*args, **kwargs)
         # _single_queried represents, have we queried for this
@@ -141,7 +139,7 @@ class TDAsset(api.obj.TDObject):
 
         # If we haven't yet tried to query the asset, try querying it.
         if self._single_queried is False:
-            self.td_struct = settings.TD_CONNECTION.json_request(
+            self.td_struct = tdapi.TD_CONNECTION.json_request(
                 method='get',
                 url_stem=self.asset_url()
                 )
@@ -160,7 +158,7 @@ class TDAsset(api.obj.TDObject):
         attribute_struct = [x for x in attributes_struct
                             if x['Name'] == attr]
         if len(attribute_struct) > 1:
-            raise api.TDException("Too many attributes with name {}".format(attr))
+            raise tdapi.TDException("Too many attributes with name {}".format(attr))
         elif len(attribute_struct) == 0:
             return
         else:
@@ -232,7 +230,7 @@ class TDAsset(api.obj.TDObject):
         return TDResourceItemQuerySet(
             [TDResourceItem(td_struct)
                 for td_struct
-                in settings.TD_CONNECTION.json_request_roller(
+                in tdapi.TD_CONNECTION.json_request_roller(
                     method='get',
                     url_stem='assets/{}/users'.format(self.td_struct['ID']))
             ])
@@ -240,24 +238,24 @@ class TDAsset(api.obj.TDObject):
     def related_users(self):
         return self.related_resources().users()
 
-api.obj.relate_cls_to_manager(TDAsset, TDAssetManager)
+tdapi.obj.relate_cls_to_manager(TDAsset, TDAssetManager)
 
 
-class TDLocationQuerySet(api.obj.TDQuerySet):
+class TDLocationQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDLocationManager(api.obj.TDObjectManager):
+class TDLocationManager(tdapi.obj.TDObjectManager):
     def get(self, location_id):
         room_url_stem = 'locations/{}'.format(location_id)
-        td_struct = settings.TD_CONNECTION.json_request_roller(
+        td_struct = tdapi.TD_CONNECTION.json_request_roller(
             method='get',
             url_stem=room_url_stem)
         assert len(td_struct) == 1
         return self.object_class(td_struct[0])
 
 
-class TDLocation(api.obj.TDObject):
+class TDLocation(tdapi.obj.TDObject):
     def __eq__(self, otro):
         if otro is None:
             return False
@@ -268,7 +266,7 @@ class TDLocation(api.obj.TDObject):
         matching_rooms = [room for room in rooms
                           if room['ID'] == room_id]
         if len(matching_rooms) < 1:
-            raise api.TDException("Room ID {} not found in location ID {}".format(
+            raise tdapi.TDException("Room ID {} not found in location ID {}".format(
                 room_id,
                 self.td_struct['ID']))
         elif len(matching_rooms) > 1:
@@ -282,18 +280,18 @@ class TDLocation(api.obj.TDObject):
     __str__ = __unicode__
 
 
-api.obj.relate_cls_to_manager(TDLocation, TDLocationManager)
+tdapi.obj.relate_cls_to_manager(TDLocation, TDLocationManager)
 
 
-class TDRoomQuerySet(api.obj.TDQuerySet):
+class TDRoomQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDRoomManager(api.obj.TDObjectManager):
+class TDRoomManager(tdapi.obj.TDObjectManager):
     pass
 
 
-class TDRoom(api.obj.TDObject):
+class TDRoom(tdapi.obj.TDObject):
     def __eq__(self, otro):
         if otro is None:
             return False
@@ -304,4 +302,4 @@ class TDRoom(api.obj.TDObject):
 
     __str__ = __unicode__
 
-api.obj.relate_cls_to_manager(TDRoom, TDRoomManager)
+tdapi.obj.relate_cls_to_manager(TDRoom, TDRoomManager)

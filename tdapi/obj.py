@@ -1,4 +1,4 @@
-from django.conf import settings
+import tdapi
 """
 Foundational class for TD objects.
 """

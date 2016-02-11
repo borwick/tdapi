@@ -8,11 +8,13 @@ import logging
 import requests
 import requests_cache
 
-import api.asset
-import api.cmdb
+import tdapi.asset
+import tdapi.cmdb
 
 # cache requests:
 requests_cache.install_cache(expire_after=60*15)
+
+TD_CONNECTION = None
 
 
 class TDException(Exception):
@@ -42,7 +44,7 @@ class TDConnection(object):
 
     Typical use:
 
-        conn = api.TDConnection(BEID='key-here',
+        conn = tdapi.TDConnection(BEID='key-here',
                                 WebServicesKey='key-here')
         conn.post_accounts_search(method='post',
                                   url_stem='accounts/search',
@@ -192,4 +194,9 @@ class TDConnection(object):
                                     data={'TypeID': type_id,
                                         'Name': name,
                                       })
-        return api.cmdb.TDConfigurationItem(td_struct=td_struct)
+        return tdapi.cmdb.TDConfigurationItem(td_struct=td_struct)
+
+
+def set_connection(conn):
+    # TODO: this probably shouldn't be a global variable.
+    tdapi.TD_CONNECTION = conn

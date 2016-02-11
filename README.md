@@ -39,9 +39,13 @@ the `raw_request` documentation to see the possible arguments.
 ## Higher-level stuff ##
 
 *Some* TeamDynamix API stuff has a richer Python wrapper. The style is
-along the lines of Django's calls. This is also the source of needing
-Django as a dependency--this code requires the Django setting
-`TD_CONNECTION` to be set. Once it's set, you can say...
+along the lines of Django's calls. The trick is that to make the API cleaner the connection needs to be set as a global variable. This is currently done this way:
+
+	import tdapi
+	conn_obj = tdapi.TDConnection(BEID='your-BEID', WebServicesKey='your-key)
+	tdapi.set_connection(conn_obj)
+
+After you've set the connection, you can say...
 
     projects = TDProject.objects.current()
 	for project in projects:

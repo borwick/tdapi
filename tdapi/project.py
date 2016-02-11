@@ -3,23 +3,22 @@ import time
 import iso8601
 import urlparse
 
-import api.obj
+import tdapi
+import tdapi.obj
 
-from django.conf import settings
 
-
-class TDProjectQuerySet(api.obj.TDQuerySet):
+class TDProjectQuerySet(tdapi.obj.TDQuerySet):
     def by_end_date(self):
         end_date_lookup = lambda x: x.td_struct['EndDate']
         self.qs.sort(key=end_date_lookup)
         return self
 
 
-class TDProjectManager(api.obj.TDObjectManager):
+class TDProjectManager(tdapi.obj.TDObjectManager):
     def search(self, data):
         return TDProjectQuerySet(
             [self.object_class(project)
-             for project in settings.TD_CONNECTION.json_request_roller(
+             for project in tdapi.TD_CONNECTION.json_request_roller(
                      method='post',
                      url_stem='projects/search',
                      data=data,
@@ -61,7 +60,7 @@ class TDProjectManager(api.obj.TDObjectManager):
         return self.active(data)
 
 
-class TDProject(api.obj.TDObject):
+class TDProject(tdapi.obj.TDObject):
     def __str__(self):
         return self.get('Name')
 
@@ -83,9 +82,8 @@ class TDProject(api.obj.TDObject):
     def end_date(self):
         return iso8601.parse_date(self.td_struct['EndDate']).strftime('%Y-%m-%d')
 
-    def td_url(self):
-        project_details_url = urlparse.urljoin(settings.TD_CLIENT_URL,
-                                               'Projects/Details/')
-        return '{}?TID={}'.format(project_details_url, self.td_struct['ID'])
+    def td_urlstem(self):
+        return 'Projects/Details/?TID={}'.format(project_details_url,
+                                                 self.td_struct['ID'])
 
-api.obj.relate_cls_to_manager(TDProject, TDProjectManager)
+tdapi.obj.relate_cls_to_manager(TDProject, TDProjectManager)

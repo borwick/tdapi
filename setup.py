@@ -11,6 +11,5 @@ setup(name='tdapi',
       install_requires=[
           'requests',
           'requests-cache',
-          'Django',
           ],
       zip_safe=False)
