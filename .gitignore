@@ -1,0 +1,4 @@
+build/
+dist/
+tdapi.egg-info/
+*.pyc
