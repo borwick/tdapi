@@ -33,4 +33,7 @@ class TDPerson(tdapi.obj.TDObject):
     def __str__(self):
         return self.get('FullName')
 
+    def import_string(self):
+        return '{} <{}>'.format(self.get('FullName').encode('utf-8'), self.get('AlertEmail'))
+
 tdapi.obj.relate_cls_to_manager(TDPerson, TDPersonManager)
