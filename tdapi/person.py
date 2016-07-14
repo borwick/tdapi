@@ -85,4 +85,9 @@ class TDPerson(tdapi.obj.TDObject):
         all_apps = list(set(self.td_struct['Applications'] + app_list))
         return self.update({'Applications': all_apps})
 
+    def del_applications(self, app_list):
+        all_apps = [x for x in self.td_struct['Applications']
+                    if x not in app_list]
+        return self.update({'Applications': all_apps})
+
 tdapi.obj.relate_cls_to_manager(TDPerson, TDPersonManager)
