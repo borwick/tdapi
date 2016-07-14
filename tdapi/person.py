@@ -28,6 +28,14 @@ class TDPersonManager(tdapi.obj.TDObjectManager):
                                      })
         return self.search(data)
 
+    def get(self, uid):
+        user_url_stem = 'people/{}'.format(uid)
+        td_struct = tdapi.TD_CONNECTION.json_request_roller(
+            method='get',
+            url_stem=user_url_stem)
+        assert len(td_struct) == 1
+        return self.object_class(td_struct[0])
+
 
 class TDPerson(tdapi.obj.TDObject):
     def __str__(self):
@@ -35,5 +43,11 @@ class TDPerson(tdapi.obj.TDObject):
 
     def import_string(self):
         return '{} <{}>'.format(self.get('FullName').encode('utf-8'), self.get('AlertEmail'))
+
+    def add_group_by_id(self, group_id):
+        # does not currently support the optional arguments
+        add_group_uri = 'people/{}/groups/{}'.format(self.get('UID'), group_id)
+        tdapi.TD_CONNECTION.request(method='put',
+                                    url_stem=add_group_uri)
 
 tdapi.obj.relate_cls_to_manager(TDPerson, TDPersonManager)
