@@ -52,11 +52,10 @@ class TDConnection(object):
                                   data={'search': 'Test'})
 
     """
-    URL_ROOT = 'https://api.teamdynamix.com/TDWebApi/api/'
-
     def __init__(self,
                  BEID,
                  WebServicesKey,
+                 sandbox=False,
                  request_delay=1):
         """
         TODO this only uses the new superuser login option with BEID and
@@ -71,13 +70,18 @@ class TDConnection(object):
         self.session = requests.Session()
         self.request_delay = request_delay
 
+        if sandbox is True:
+            self.url_root = 'https://api.teamdynamix.com/SBTDWebApi/api/'
+        else:
+            self.url_root = 'https://api.teamdynamix.com/TDWebApi/api/'
+
         self.login()
 
     def _make_url(self, url_stem):
         """
         This uses urljoin to create the absolute URL.
         """
-        return urlparse.urljoin(self.URL_ROOT, url_stem)
+        return urlparse.urljoin(self.url_root, url_stem)
 
     def raw_request(self, method, url_stem, data=None, bearer_required=True):
         """
