@@ -4,6 +4,7 @@ TeamDynamix API.
 import json
 import urlparse
 import logging
+import time
 
 import requests
 import requests_cache
@@ -55,15 +56,20 @@ class TDConnection(object):
 
     def __init__(self,
                  BEID,
-                 WebServicesKey):
+                 WebServicesKey,
+                 request_delay=1):
         """
         TODO this only uses the new superuser login option with BEID and
         WebServicesKey.
+
+        The `request_delay` attribute is the amount of time to sleep
+        after each request.
         """
         self.bearer_token = False            # This will be set in login()
         self.BEID = BEID
         self.WebServicesKey = WebServicesKey
         self.session = requests.Session()
+        self.request_delay = request_delay
 
         self.login()
 
@@ -132,6 +138,10 @@ class TDConnection(object):
         logging.debug('Response code: %s\nResponse: %s',
                       resp.status_code,
                       resp.text)
+
+        # if resp was not from cache:
+        if resp.from_cache is False:
+            time.sleep(self.request_delay)
 
         if resp.status_code == 401:
             raise TDAuthorizationException("{} returned 401 status\n{}".format(
