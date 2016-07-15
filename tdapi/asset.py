@@ -124,6 +124,7 @@ class TDAsset(tdapi.obj.TDObject):
         # specific asset vs. a group of assets?
         #
         # TODO set this appropriately
+        super(TDPerson, self).__init__(*args, **kwargs)
         self._single_queried = False
 
     def single_query_get(self, attr):
