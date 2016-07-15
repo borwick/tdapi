@@ -16,6 +16,12 @@ and WebServicesKey:
     TD_CONNECTION = tdapi.TDConnection(BEID=BEID,
         WebServicesKey=WebServicesKey)
 
+Note: if you would like to use the sandbox instead, pass the `sandbox`
+flag as `True`:
+
+    TD_CONNECTION = tdapi.TDConnection(BEID=BEID,
+        WebServicesKey=WebServicesKey, sandbox=True)
+
 
 ## Low-level stuff
 
