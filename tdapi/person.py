@@ -23,8 +23,10 @@ class TDPersonManager(tdapi.obj.TDObjectManager):
                 )]
 
     def active(self, data=None):
+        # hard coded 1,000,000 as the max results
         data = self._copy_or_create(data,
                                     {'IsActive': True,
+                                     'MaxResults': 1000000,
                                      })
         return self.search(data)
 
