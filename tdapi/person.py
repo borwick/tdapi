@@ -53,18 +53,21 @@ class TDPerson(tdapi.obj.TDObject):
     def person_url(self):
         return 'people/{}'.format(self.person_id())
 
-    def single_query_get(self, attr):
-        # modeled off off TDAsset.single_query_get
-        cached_attr_val = self.get(attr)
-        if cached_attr_val:
-            return cached_attr_val
-
+    def _ensure_single_query(self):
         if self._single_queried is False:
             self.td_struct = tdapi.TD_CONNECTION.json_request(
                 method='get',
                 url_stem=self.person_url()
                 )
             self._single_queried = True
+
+    def single_query_get(self, attr):
+        # modeled off off TDAsset.single_query_get
+        cached_attr_val = self.get(attr)
+        if cached_attr_val:
+            return cached_attr_val
+
+        self._ensure_single_query()
 
         return self.get(attr)
 
@@ -98,6 +101,7 @@ class TDPerson(tdapi.obj.TDObject):
         # existing data. TODO consider purging cache and re-calling
         # query before doing this update.
         update_data = copy.deepcopy(update_data)
+        self._ensure_single_query() # Make sure we have all attributes populated
         for orig_attr in self.td_struct.keys():
             if orig_attr not in update_data:
                 update_data[orig_attr] = self.td_struct[orig_attr]
