@@ -1,4 +1,6 @@
 import copy
+import random
+import string
 
 import tdapi
 import tdapi.obj
@@ -109,6 +111,9 @@ class TDPerson(tdapi.obj.TDObject):
     def deactivate(self):
         return self.set_active(False)
 
+    def is_active(self):
+        return self.get('IsActive') == True
+
     def update(self, update_data):
         # don't mess with the original data. copy into the update all
         # existing data. TODO consider purging cache and re-calling
@@ -131,6 +136,25 @@ class TDPerson(tdapi.obj.TDObject):
         all_apps = [x for x in self.td_struct['Applications']
                     if x not in app_list]
         return self.update({'Applications': all_apps})
+
+    @classmethod
+    def new(cls, update_data):
+        update_data = copy.deepcopy(update_data)
+        if 'TypeID' not in update_data:
+            update_data['TypeID'] = 1 # User
+        if 'UserName' not in update_data:
+            update_data['UserName'] = update_data['AuthenticationUserName']
+        if 'Password' not in update_data:
+            random_password = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                                      for _ in range(20))
+            update_data['Password'] = random_password
+        if 'AlertEmail' not in update_data:
+            update_data['AlertEmail'] = update_data['PrimaryEmail']
+
+        tdapi.TD_CONNECTION.request(method='post',
+                                    url_stem='people',
+                                    data=update_data)
+
 
 tdapi.obj.relate_cls_to_manager(TDPerson, TDPersonManager)
 
