@@ -22,10 +22,23 @@ class TDPersonManager(tdapi.obj.TDObjectManager):
                     data=data,
                 )]
 
+    def all(self, data=None):
+        all_records = []
+        all_records += self.active(data)
+        all_records += self.inactive(data)
+        return all_records
+
     def active(self, data=None):
         # hard coded 1,000,000 as the max results
         data = self._copy_or_create(data,
                                     {'IsActive': True,
+                                     'MaxResults': 1000000,
+                                     })
+        return self.search(data)
+
+    def inactive(self, data=None):
+        data = self._copy_or_create(data,
+                                    {'IsActive': False,
                                      'MaxResults': 1000000,
                                      })
         return self.search(data)
@@ -120,3 +133,4 @@ class TDPerson(tdapi.obj.TDObject):
         return self.update({'Applications': all_apps})
 
 tdapi.obj.relate_cls_to_manager(TDPerson, TDPersonManager)
+
