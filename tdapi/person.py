@@ -120,6 +120,16 @@ class TDPerson(tdapi.obj.TDObject):
         # query before doing this update.
         update_data = copy.deepcopy(update_data)
         self._ensure_single_query() # Make sure we have all attributes populated
+
+        # short circuit to make sure update_data is not already set
+        seen_all = True
+        for (update_key, update_val) in update_data.items():
+            if self.get(update_key) != update_val:
+                seen_all = False
+                break
+        if seen_all == True:
+            return
+        
         for orig_attr in self.td_struct.keys():
             if orig_attr not in update_data:
                 update_data[orig_attr] = self.td_struct[orig_attr]
