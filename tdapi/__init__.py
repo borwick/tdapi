@@ -56,6 +56,7 @@ class TDConnection(object):
                  BEID,
                  WebServicesKey,
                  sandbox=False,
+                 preview=False,
                  request_delay=1):
         """
         TODO this only uses the new superuser login option with BEID and
@@ -70,10 +71,14 @@ class TDConnection(object):
         self.session = requests.Session()
         self.request_delay = request_delay
 
-        if sandbox is True:
-            self.url_root = 'https://api.teamdynamix.com/SBTDWebApi/api/'
+        if preview is True:
+            self.url_root = 'https://api.teamdynamixpreview.com/'
         else:
-            self.url_root = 'https://api.teamdynamix.com/TDWebApi/api/'
+            self.url_root = 'https://api.teamdynamix.com/'
+        if sandbox is True:
+            self.url_root += 'SBTDWebApi/api/'
+        else:
+            self.url_root += 'TDWebApi/api/'
 
         self.login()
 
