@@ -141,19 +141,13 @@ class TDConfigurationItem(tdapi.obj.TDObject):
         self._single_queried = False
         self._attributes = None
 
-    def single_query_get(self, attr):
-        cached_attr_val = self.get(attr)
-        if cached_attr_val:
-            return cached_attr_val
-
+    def _ensure_single_query(self):
         if self._single_queried is False:
             self.td_struct = tdapi.TD_CONNECTION.json_request(
                 method='get',
                 url_stem=self.url(),
                 )
             self._single_queried = True
-
-        return self.get(attr)
 
     def name(self):
         return self.td_struct['Name']
