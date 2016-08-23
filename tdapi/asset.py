@@ -120,7 +120,6 @@ class TDAssetManager(tdapi.obj.TDObjectManager):
 class TDAsset(tdapi.obj.TDObject):
     def __init__(self, *args, **kwargs):
         super(TDAsset, self).__init__(*args, **kwargs)
-        super(TDPerson, self).__init__(*args, **kwargs)
         self._single_queried = False
 
     def _ensure_single_query(self):
