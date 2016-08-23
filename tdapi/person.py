@@ -76,16 +76,6 @@ class TDPerson(tdapi.obj.TDObject):
                 )
             self._single_queried = True
 
-    def single_query_get(self, attr):
-        # modeled off off TDAsset.single_query_get
-        cached_attr_val = self.get(attr)
-        if cached_attr_val:
-            return cached_attr_val
-
-        self._ensure_single_query()
-
-        return self.get(attr)
-
     def import_string(self):
         return '{} <{}>'.format(self.get('FullName').encode('utf-8'), self.get('AlertEmail'))
 

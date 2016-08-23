@@ -110,3 +110,9 @@ for up to 15 minutes.
 This code is adapted from some internal code so there may be some
 cruft (e.g. weird Python requirements) that are not actually needed
 for what you see here.
+
+# No warranty
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
