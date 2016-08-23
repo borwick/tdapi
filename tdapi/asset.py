@@ -120,33 +120,15 @@ class TDAssetManager(tdapi.obj.TDObjectManager):
 class TDAsset(tdapi.obj.TDObject):
     def __init__(self, *args, **kwargs):
         super(TDAsset, self).__init__(*args, **kwargs)
-        # _single_queried represents, have we queried for this
-        # specific asset vs. a group of assets?
-        #
-        # TODO set this appropriately
-        super(TDPerson, self).__init__(*args, **kwargs)
         self._single_queried = False
 
-    def single_query_get(self, attr):
-        """
-        TeamDynamix won't pull all data for an asset unless you query the
-        asset by itself. Use this method when you need to query data
-        that only shows up when you query the asset by itself.
-        """
-        # If the struct has the value, then just use it.
-        cached_attr_val = self.get(attr)
-        if cached_attr_val:
-            return cached_attr_val
-
-        # If we haven't yet tried to query the asset, try querying it.
+    def _ensure_single_query(self):
         if self._single_queried is False:
             self.td_struct = tdapi.TD_CONNECTION.json_request(
                 method='get',
                 url_stem=self.asset_url()
                 )
             self._single_queried = True
-
-        return self.get(attr)
 
     def attribute_get(self, attr):
         """

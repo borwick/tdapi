@@ -31,6 +31,9 @@ class TDObject(object):
     """
     Modeled on Django's Models. This is the parent class for TD
     objects.
+
+    If you need single_query_get functionality, define
+    `_ensure_single_query`
     """
     objects = None
 
@@ -42,6 +45,17 @@ class TDObject(object):
 
     def get(self, *args, **kwargs):
         return self.td_struct.get(*args, **kwargs)
+
+    def _ensure_single_query(self):
+        raise Exception("_ensure_single_query not defined for this class")
+
+    def single_query_get(self, *args, **kwargs):
+        cached_attr_val = self.get(*args, **kwargs)
+        if cached_attr_val:
+            return cached_attr_val
+
+        self._ensure_single_query()
+        return self.get(*args, **kwargs)
 
 
 def relate_cls_to_manager(cls, mgr):
