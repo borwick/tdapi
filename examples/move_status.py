@@ -1,14 +1,19 @@
 #!python
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 import tdapi
 from tdapi.ticket import TDTicketAppFactory
 
+# Your instance-specific variables:
 BEID='beid-goes-here'
 WebServicesKey='wsk-goes-here'
-TICKET_APP_ID='346'
+TICKET_APP_ID='123'
+STATUS_1=12345
+STATUS_2=23456
+CLOSED=34567
 
-STATUS_1=16569
-STATUS_2=16570
-CLOSED=11120
+# code begins:
 
 TDTicket = TDTicketAppFactory(app_id=TICKET_APP_ID)
 
