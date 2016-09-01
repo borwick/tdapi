@@ -14,8 +14,6 @@ import argparse
 import sys
 import logging
 
-import yaml
-
 import tdapi
 
 logger = logging.getLogger(__name__)
