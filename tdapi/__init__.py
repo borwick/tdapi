@@ -88,7 +88,31 @@ class TDConnection(object):
         """
         return urlparse.urljoin(self.url_root, url_stem)
 
-    def raw_request(self, method, url_stem, data=None, bearer_required=True):
+    def add_authorization_header(self, headers):
+        headers['Authorization'] = 'Bearer {}'.format(self.bearer_token)
+
+    def handle_resp(self, resp):
+        if resp.status_code == 401:
+            raise TDAuthorizationException("{} returned 401 status\n{}".format(
+                url_stem, resp.text))
+        elif resp.status_code not in [200, 201]:
+            raise TDException("{} returned non-200 status ({})\n{}".format(
+                url_stem, resp.status_code, resp.text))
+
+    def files_request(self, method, url_stem,
+                      files):
+        headers = {}
+        self.add_authorization_header(headers)
+        resp = self.session.post(self._make_url(url_stem),
+                                 files=files,
+                                 headers=headers)
+        self.handle_resp(resp)
+        return resp
+
+                      
+    def raw_request(self, method, url_stem,
+                    data=None,
+                    bearer_required=True):
         """
         This method POSTs to TeamDynamix.
 
@@ -104,7 +128,7 @@ class TDConnection(object):
             raise TDException("method {} not supported".format(method))
 
         if bearer_required:
-            headers['Authorization'] = 'Bearer {}'.format(self.bearer_token)
+            self.add_authorization_header(headers)
 
         if data is not None:
             payload = json.dumps(data)
@@ -118,7 +142,7 @@ class TDConnection(object):
             resp = self.session.post(self._make_url(url_stem),
                                      data=payload,
                                      headers=headers,
-                                 )
+            )
         elif method == 'get':
             logging.debug('GET to %s, data %s',
                           self._make_url(url_stem),
@@ -152,12 +176,7 @@ class TDConnection(object):
         if resp.from_cache is False:
             time.sleep(self.request_delay)
 
-        if resp.status_code == 401:
-            raise TDAuthorizationException("{} returned 401 status\n{}".format(
-                url_stem, resp.text))
-        elif resp.status_code not in [200, 201]:
-            raise TDException("{} returned non-200 status ({})\n{}".format(
-                url_stem, resp.status_code, resp.text))
+        self.handle_resp(resp)
 
         return resp
 
