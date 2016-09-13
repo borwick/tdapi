@@ -94,10 +94,10 @@ class TDConnection(object):
     def handle_resp(self, resp):
         if resp.status_code == 401:
             raise TDAuthorizationException("{} returned 401 status\n{}".format(
-                url_stem, resp.text))
+                resp.url, resp.text))
         elif resp.status_code not in [200, 201]:
             raise TDException("{} returned non-200 status ({})\n{}".format(
-                url_stem, resp.status_code, resp.text))
+                resp.url, resp.status_code, resp.text))
 
     def files_request(self, method, url_stem,
                       files):
