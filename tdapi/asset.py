@@ -229,6 +229,15 @@ class TDLocationQuerySet(tdapi.obj.TDQuerySet):
 
 
 class TDLocationManager(tdapi.obj.TDObjectManager):
+    def _copy_or_create(self, data, data_to_merge=None):
+        if data is None:
+            new_data = {}
+        else:
+            new_data = copy.deepcopy(data)
+        new_data.update(data_to_merge)
+        return new_data
+
+
     def get(self, location_id):
         room_url_stem = 'locations/{}'.format(location_id)
         td_struct = tdapi.TD_CONNECTION.json_request_roller(
@@ -237,12 +246,61 @@ class TDLocationManager(tdapi.obj.TDObjectManager):
         assert len(td_struct) == 1
         return self.object_class(td_struct[0])
 
+    def search(self, data):
+        return [self.object_class(td_struct)
+                for td_struct
+                in tdapi.TD_CONNECTION.json_request_roller(
+                    method='post',
+                    url_stem='locations/search',
+                    data=data)]
+
+    def active(self, data=None):
+        data = self._copy_or_create(data,
+                                    {'IsActive': True,
+                                     })
+        return self.search(data)
+
+    def inactive(self, data=None):
+        data = self._copy_or_create(data,
+                                    {'IsActive': False,
+                                     })
+        return self.search(data)
+
+    def all(self, data=None):
+        all_records = []
+        all_records += self.active(data)
+        all_records += self.inactive(data)
+        return all_records
 
 class TDLocation(tdapi.obj.TDObject):
+    def __init__(self, *args, **kwargs):
+        super(TDLocation, self).__init__(*args, **kwargs)
+        self._single_queried = False
+        self.TDRoom = TDRoomFactory(location=self)
+
+    def location_id(self):
+        return self.get('ID')
+
+    def location_url(self):
+        return 'locations/{}'.format(self.location_id())
+
     def __eq__(self, otro):
         if otro is None:
             return False
         return self.get('ID') == otro.get('ID')
+
+    def _ensure_single_query(self):
+        if self._single_queried is False:
+            self.td_struct = tdapi.TD_CONNECTION.json_request(
+                method='get',
+                url_stem=self.location_url()
+                )
+            self._single_queried = True
+
+    def rooms(self):
+        return [self.TDRoom(td_struct)
+                for td_struct
+                in self.single_query_get('Rooms')]
 
     def get_room(self, room_id):
         rooms = self.get('Rooms')
@@ -255,7 +313,7 @@ class TDLocation(tdapi.obj.TDObject):
         elif len(matching_rooms) > 1:
             assert "Too many matching rooms"
         else:
-            return TDRoom(matching_rooms[0])
+            return self.TDRoom(matching_rooms[0])
 
     def __unicode__(self):
         return self.get('Name')
@@ -270,19 +328,67 @@ class TDRoomQuerySet(tdapi.obj.TDQuerySet):
     pass
 
 
-class TDRoomManager(tdapi.obj.TDObjectManager):
-    pass
+class TDBaseRoomManager(tdapi.obj.TDObjectManager):
+    LOCATION = None
 
 
-class TDRoom(tdapi.obj.TDObject):
+class TDBaseRoom(tdapi.obj.TDObject):
+    LOCATION = None
+
     def __eq__(self, otro):
         if otro is None:
             return False
         return self.get('ID') == otro.get('ID')
 
+    @classmethod
+    def location(cls):
+        return cls.LOCATION
+
     def __unicode__(self):
         return self.get('Name')
 
+    def room_id(self):
+        return self.get('ID')
+    
+    def url(self):
+        return self.location().location_url() + \
+            '/rooms/{}'.format(self.room_id())
+
+    def update(self, update_data):
+        # don't mess with the original data. copy into the update all
+        # existing data. TODO consider purging cache and re-calling
+        # query before doing this update.
+        update_data = copy.deepcopy(update_data)
+        # TODO should this do a single query get?
+        
+        # short circuit to make sure update_data is not already set
+        seen_all = True
+        for (update_key, update_val) in update_data.items():
+            if self.get(update_key) != update_val:
+                seen_all = False
+                break
+        if seen_all == True:
+            return
+        
+        for orig_attr in self.td_struct.keys():
+            if orig_attr not in update_data:
+                update_data[orig_attr] = self.td_struct[orig_attr]
+
+        tdapi.TD_CONNECTION.request(method='put',
+                                    url_stem=self.url(),
+                                    data=update_data)
+
     __str__ = __unicode__
 
-tdapi.obj.relate_cls_to_manager(TDRoom, TDRoomManager)
+def TDRoomFactory(location):
+    """
+    Created a room factory--each location creates a room class.
+    """
+    class TDRoomManager(TDBaseRoomManager):
+        LOCATION = location
+
+    class TDRoom(TDBaseRoom):
+        LOCATION = location
+
+    tdapi.obj.relate_cls_to_manager(TDRoom, TDRoomManager)
+    return TDRoom
