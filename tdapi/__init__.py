@@ -14,6 +14,8 @@ import tdapi.cmdb
 
 # cache requests:
 requests_cache.install_cache(expire_after=60*15)
+logger = logging.getLogger(__name__)
+
 
 TD_CONNECTION = None
 
@@ -129,7 +131,7 @@ class TDConnection(object):
         headers = {}
         headers['Content-Type'] = 'application/json'
 
-        if method not in ('post', 'get', 'delete', 'put'):
+        if method not in ('post', 'get', 'delete', 'put', 'patch'):
             raise TDException("method {} not supported".format(method))
 
         if bearer_required:
@@ -141,7 +143,7 @@ class TDConnection(object):
             payload = ''
 
         if method == 'post':
-            logging.debug('POST to %s, data %s',
+            logger.debug('POST to %s, data %s',
                           self._make_url(url_stem),
                           payload)
             resp = self.session.post(self._make_url(url_stem),
@@ -149,7 +151,7 @@ class TDConnection(object):
                                      headers=headers,
             )
         elif method == 'get':
-            logging.debug('GET to %s, data %s',
+            logger.debug('GET to %s, data %s',
                           self._make_url(url_stem),
                           payload)
             resp = self.session.get(self._make_url(url_stem),
@@ -157,7 +159,7 @@ class TDConnection(object):
                                     headers=headers,
                                  )
         elif method == 'delete':
-            logging.debug('DELETE to %s, data %s',
+            logger.debug('DELETE to %s, data %s',
                           self._make_url(url_stem),
                           payload)
             resp = self.session.delete(self._make_url(url_stem),
@@ -165,15 +167,23 @@ class TDConnection(object):
                                        headers=headers,
                                    )
         elif method == 'put':
-            logging.debug('PUT to %s, data %s',
+            logger.debug('PUT to %s, data %s',
                           self._make_url(url_stem),
                           payload)
             resp = self.session.put(self._make_url(url_stem),
                                        data=payload,
                                        headers=headers,
                                    )
+        elif method == 'patch':
+            logger.debug('PATCH to %s, data %s',
+                          self._make_url(url_stem),
+                          payload)
+            resp = self.session.patch(self._make_url(url_stem),
+                                      data=payload,
+                                      headers=headers,
+            )
 
-        logging.debug('Response code: %s\nResponse: %s',
+        logger.debug('Response code: %s\nResponse: %s',
                       resp.status_code,
                       resp.text)
 
