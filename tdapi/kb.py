@@ -32,8 +32,15 @@ class TDKnowledgeArticle(tdapi.obj.TDObject):
         return self.get('Subject')
 
     def _ensure_single_query(self):
-        # FIXME
-        pass
+        if self._single_queried is False:
+            self.td_struct = tdapi.TD_CONNECTION.json_request(
+                method='get',
+                url_stem=self.url()
+                )
+            self._single_queried = True
+
+    def url(self):
+        return 'knowledgebase/{}'.format(self.get('ID'))
 
     # TODO move this into TDObject ?
     def update(self, update_data):
