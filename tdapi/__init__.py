@@ -36,6 +36,7 @@ class TDAuthorizationException(Exception):
     pass
 
 
+# TODO probably rename this to TDAdminConnection
 class TDConnection(object):
     """
     This uses the TeamDynamix API:
@@ -74,6 +75,12 @@ class TDConnection(object):
         self.session = requests.Session()
         self.request_delay = request_delay
 
+        self._make_url_root(url_root=url_root,
+                            preview=preview,
+                            sandbox=sandbox)
+        self.login()
+
+    def _make_url_root(self, url_root, preview, sandbox):
         if url_root is not None:
             self.url_root = url_root
         else:
@@ -86,8 +93,6 @@ class TDConnection(object):
                 self.url_root += 'SBTDWebApi/api/'
             else:
                 self.url_root += 'TDWebApi/api/'
-
-        self.login()
 
     def _make_url(self, url_stem):
         """
@@ -250,6 +255,39 @@ class TDConnection(object):
         return tdapi.cmdb.TDConfigurationItem(td_struct=td_struct)
 
 
+class TDUserConnection(TDConnection):
+    """
+    Log in as a user rather than as admin.
+    """
+    def __init__(self,
+                 username,
+                 password,
+                 sandbox=False,
+                 preview=False,
+                 url_root=None,
+                 request_delay=1):
+        self.bearer_token = False
+        self.username = username
+        self.password = password
+        self.session = requests.Session()
+        self.request_delay = request_delay
+
+        self._make_url_root(url_root=url_root,
+                            preview=preview,
+                            sandbox=sandbox)
+        self.login()
+
+    def login(self):
+        resp = self.request(method='post',
+                            url_stem='auth/login',
+                            data={'UserName': self.username,
+                                  'Password': self.password,
+                              },
+                            bearer_required=False
+                        )
+        self.bearer_token = resp.text
+
+    
 def set_connection(conn):
     # TODO: this probably shouldn't be a global variable.
     tdapi.TD_CONNECTION = conn
