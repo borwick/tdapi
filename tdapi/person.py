@@ -79,9 +79,18 @@ class TDPerson(tdapi.obj.TDObject):
     def import_string(self):
         return '{} <{}>'.format(self.get('FullName').encode('utf-8'), self.get('AlertEmail'))
 
-    def add_group_by_id(self, group_id):
+    def add_group_by_id(self,
+                        group_id,
+                        isPrimary=False,
+                        isNotified=True,
+                        isManager=False,
+    ):
         # does not currently support the optional arguments
-        add_group_uri = self.person_url() + '/groups/{}'.format(group_id)
+        add_group_uri = self.person_url() + '/groups/{}'.format(group_id) + \
+                        '?isPrimary={}'.format(isPrimary) + \
+                        '&isNotified={}'.format(isNotified) + \
+                        '&isManager={}'.format(isManager)
+        
         tdapi.TD_CONNECTION.request(method='put',
                                     url_stem=add_group_uri)
 

@@ -112,4 +112,3 @@ def TDTicketAppFactory(app_id):
         APP_ID = app_id
     tdapi.obj.relate_cls_to_manager(TDTicket, TDTicketManager)
     return TDTicket
-
