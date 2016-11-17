@@ -59,7 +59,7 @@ class TDKnowledgeArticle(tdapi.obj.TDObject):
             if orig_attr not in update_data:
                 update_data[orig_attr] = self.td_struct[orig_attr]
 
-        tdapi.TD_CONNECTION.request(method='post',
+        tdapi.TD_CONNECTION.request(method='put',
                                     url_stem=self.url(),
                                     data=update_data)
 
