@@ -6,11 +6,14 @@ import tdapi.obj
 
 class TDKnowledgeArticleManager(tdapi.obj.TDObjectManager):
     def search(self, data):
+        new_data = copy.deepcopy(data)
+        if not new_data.has_key('ReturnCount'):
+            new_data['ReturnCount'] = 100000
         return [self.object_class(obj)
                 for obj in tdapi.TD_CONNECTION.json_request_roller(
                      method='post',
                      url_stem='knowledgebase/search',
-                     data=data,
+                     data=new_data,
                         )]
 
     def all(self, data=None):
@@ -19,6 +22,14 @@ class TDKnowledgeArticleManager(tdapi.obj.TDObjectManager):
         else:
             new_data = copy.deepcopy(data)
         new_data['Status'] = None
+        return self.search(new_data)
+
+    def approved(self, data=None):
+        if data is None:
+            new_data = {}
+        else:
+            new_data = copy.deepcopy(data)
+        new_data['Status'] = 'Approved'
         return self.search(new_data)
 
 
