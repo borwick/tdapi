@@ -24,6 +24,10 @@ if __name__ == '__main__':
         if review_date is None:
             logging.info("Setting review date for %s", article)
             try:
-                article.update({'ReviewDateUtc': default_review_date})
+                modified_date = article.get('ModifiedDate')
+                if modified_date is not None:
+                    article.update({'ReviewDateUtc': modified_date})
+                else:
+                    article.update({'ReviewDateUtc': default_review_date})
             except tdapi.TDException:
                 logging.warning("Could not update %s", article.get('ID'))

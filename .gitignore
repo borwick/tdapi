@@ -3,3 +3,4 @@ dist/
 tdapi.egg-info/
 *.pyc
 .venv
+cache.sqlite
