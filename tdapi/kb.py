@@ -67,7 +67,9 @@ class TDKnowledgeArticle(tdapi.obj.TDObject):
             return
 
         for orig_attr in self.td_struct.keys():
-            if orig_attr not in update_data:
+            if orig_attr in ('Attachments'):
+               pass
+            elif orig_attr not in update_data:
                 update_data[orig_attr] = self.td_struct[orig_attr]
 
         tdapi.TD_CONNECTION.request(method='put',
