@@ -58,7 +58,14 @@ class TDPerson(tdapi.obj.TDObject):
     def __init__(self, *args, **kwargs):
         super(TDPerson, self).__init__(*args, **kwargs)
         self._single_queried = False
-        
+
+    def __eq__(self, otro):
+        return self.person_id() == otro.person_id()
+
+    def __hash__(self):
+        # Needed for set operations
+        return hash(self.person_id())
+
     def __str__(self):
         return self.get('FullName')
 

@@ -4,6 +4,7 @@ import string
 
 import tdapi
 import tdapi.obj
+import tdapi.person
 
 
 class TDGroupManager(tdapi.obj.TDObjectManager):
@@ -44,10 +45,25 @@ class TDGroupManager(tdapi.obj.TDObjectManager):
         return self.search(data)
 
 
+class TDGroupMember(tdapi.person.TDPerson):
+    pass
+
 
 class TDGroup(tdapi.obj.TDObject):
     def __str__(self):
         return self.get('Name')
+
+    def url(self):
+        return 'groups/{}'.format(self.get('ID'))
+
+    def members(self):
+        members_url_stem = '{}/members'.format(self.url())
+        return [TDGroupMember(td_struct)
+                for td_struct
+                in tdapi.TD_CONNECTION.json_request_roller(
+                    method='get',
+                    url_stem=members_url_stem,
+                    )]
 
 
 tdapi.obj.relate_cls_to_manager(TDGroup, TDGroupManager)
