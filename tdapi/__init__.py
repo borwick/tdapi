@@ -291,3 +291,6 @@ class TDUserConnection(TDConnection):
 def set_connection(conn):
     # TODO: this probably shouldn't be a global variable.
     tdapi.TD_CONNECTION = conn
+
+def get_connection():
+    return tdapi.TD_CONNECTION
