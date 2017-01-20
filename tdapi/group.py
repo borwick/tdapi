@@ -53,6 +53,12 @@ class TDGroup(tdapi.obj.TDObject):
     def __str__(self):
         return self.get('Name')
 
+    def __eq__(self, otro):
+        return self.get('ID') == otr.get('ID'))
+
+    def __ne__(self, otro):
+        return not self == otro
+
     def url(self):
         return 'groups/{}'.format(self.get('ID'))
 

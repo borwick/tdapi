@@ -62,6 +62,9 @@ class TDPerson(tdapi.obj.TDObject):
     def __eq__(self, otro):
         return self.person_id() == otro.person_id()
 
+    def __ne__(self, otro):
+        return not self == otro
+
     def __hash__(self):
         # Needed for set operations
         return hash(self.person_id())
