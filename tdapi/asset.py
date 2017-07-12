@@ -116,6 +116,9 @@ class TDAssetManager(tdapi.obj.TDObjectManager):
     def licenses(self):
         return self.by_product_types(self.LICENSE_PRODUCT_TYPES)
 
+    def all(self):
+        return self.search(data={})
+
 
 class TDAsset(tdapi.obj.TDObject):
     def __init__(self, *args, **kwargs):
@@ -220,6 +223,27 @@ class TDAsset(tdapi.obj.TDObject):
 
     def related_users(self):
         return self.related_resources().users()
+
+    def update(self, update_data):
+        self._ensure_single_query()
+        update_data = copy.deepcopy(update_data)
+
+        seen_all = True
+        for (update_key, update_val) in update_data.items():
+            if self.get(update_key) != update_val:
+                seen_all = False
+                break
+        if seen_all == True:
+            return
+
+        for orig_attr in self.td_struct.keys():
+            if orig_attr not in update_data:
+                update_data[orig_attr] = self.td_struct[orig_attr]
+
+        tdapi.TD_CONNECTION.request(method='post',
+                                    url_stem=self.asset_url(),
+                                    data=update_data)
+
 
 tdapi.obj.relate_cls_to_manager(TDAsset, TDAssetManager)
 
