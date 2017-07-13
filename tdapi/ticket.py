@@ -104,6 +104,18 @@ class TDBaseTicket(tdapi.obj.TDObject):
                          comments=comments,
                          notify=self.notify_values())
 
+    def patch_update(self, update_data, notify_responsible=False):
+        """
+        This does _not_ check whether the ticket already has the updated data.
+
+        You need to form the patch data yourself!
+        """
+        patch_url = self.url() + '?notifyNewResponsible={}'.format(notify_responsible)
+        tdapi.TD_CONNECTION.request(method='patch',
+                                    url_stem=self.url(),
+                                    data=update_data)
+
+
 def TDTicketAppFactory(app_id):
     class TDTicketManager(TDBaseTicketManager):
         APP_ID = app_id
