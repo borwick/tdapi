@@ -54,7 +54,7 @@ class TDGroup(tdapi.obj.TDObject):
         return self.get('Name')
 
     def __eq__(self, otro):
-        return self.get('ID') == otr.get('ID')
+        return self.get('ID') == otro.get('ID')
 
     def __ne__(self, otro):
         return not self == otro
