@@ -71,6 +71,24 @@ class TDGroup(tdapi.obj.TDObject):
                     url_stem=members_url_stem,
                     )]
 
+    def update(self, update_data):
+        update_data = copy.deepcopy(update_data)
+        seen_all = True
+        for (update_key, update_val) in update_data.items():
+            if self.get(update_key) != update_val:
+                seen_all = False
+                break
+        if seen_all == True:
+            return
+
+        for orig_attr in self.td_struct.keys():
+            if orig_attr not in update_data:
+                update_data[orig_attr] = self.td_struct[orig_attr]
+
+        tdapi.TD_CONNECTION.request(method='put',
+                                    url_stem=self.url(),
+                                    data=update_data)
+        
 
 tdapi.obj.relate_cls_to_manager(TDGroup, TDGroupManager)
 
