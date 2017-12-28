@@ -89,6 +89,13 @@ class TDGroup(tdapi.obj.TDObject):
                                     url_stem=self.url(),
                                     data=update_data)
         
+    @classmethod
+    def new(cls, update_data):
+        update_data = copy.deepcopy(update_data)
+        tdapi.TD_CONNECTION.request(method='post',
+                                    url_stem='groups',
+                                    data=update_data)
+
 
 tdapi.obj.relate_cls_to_manager(TDGroup, TDGroupManager)
 
