@@ -53,6 +53,29 @@ class TDPersonManager(tdapi.obj.TDObjectManager):
         assert len(td_struct) == 1
         return self.object_class(td_struct[0])
 
+    def userlist(self, active=None, employee=None, user_type=None):
+        userlist_url = 'people/userlist?'
+
+        # build the variables to pass to the GET
+        userlist_vars = []
+        if active is True:
+            userlist_vars.append('isActive=True')
+        elif active is False:
+            userlist_vars.append('isActive=False')
+        if employee is True:
+            userlist_vars.append('isEmployee=True')
+        elif employee is False:
+            userlist_vars.append('isEmployee=False')
+        if user_type is not None:
+            userlist_vars.append('userType=%s'.format(user_type))
+        userlist_url += '&'.join(userlist_vars)
+
+        return [TDPerson(td_struct)
+                for td_struct
+                in tdapi.TD_CONNECTION.json_request_roller(
+                    method='get',
+                    url_stem=userlist_url)]
+
 
 class TDPerson(tdapi.obj.TDObject):
     def __init__(self, *args, **kwargs):
