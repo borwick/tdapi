@@ -67,7 +67,7 @@ class TDPersonManager(tdapi.obj.TDObjectManager):
         elif employee is False:
             userlist_vars.append('isEmployee=False')
         if user_type is not None:
-            userlist_vars.append('userType=%s'.format(user_type))
+            userlist_vars.append('userType={}'.format(user_type))
         userlist_url += '&'.join(userlist_vars)
 
         return [TDPerson(td_struct)
